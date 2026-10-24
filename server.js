@@ -1,7 +1,9 @@
+
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-require("dotenv").config();
 
 const productRoutes = require("./routes/productRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -23,20 +25,27 @@ app.get("/", (req, res) => {
   });
 });
 
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log("MongoDB connected successfully!");
+// Local development server
+if (require.main === module) {
+  mongoose
+    .connect(process.env.MONGODB_URI)
+    .then(() => {
+      console.log("MongoDB connected successfully!");
 
-    app.listen(PORT, () => {
-      console.log(
-        `Backend running on http://localhost:${PORT}`
+      app.listen(PORT, () => {
+        console.log(
+          `Backend running on http://localhost:${PORT}`
+        );
+      });
+    })
+    .catch((error) => {
+      console.error(
+        "MongoDB connection failed:",
+        error.message
       );
+      process.exitCode = 1;
     });
-  })
-  .catch((error) => {
-    console.error(
-      "MongoDB connection failed:",
-      error.message
-    );
-  });
+}
+
+// Export Express app for deployment
+module.exports = app;
