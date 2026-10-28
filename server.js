@@ -1,4 +1,3 @@
-
 require("dotenv").config();
 
 const express = require("express");
@@ -11,13 +10,16 @@ const saleRoutes = require("./routes/saleRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5001;
-
+const miraRoutes = require("./routes/miraRoutes");
+const miraVoiceRoutes = require("./routes/miraVoiceRoutes");
 app.use(cors());
 app.use(express.json({ limit: "5mb" }));
 
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/mira/voice", miraVoiceRoutes);
 app.use("/api/sales", saleRoutes);
+app.use("/api/mira", miraRoutes);
 
 app.get("/", (req, res) => {
   res.json({
