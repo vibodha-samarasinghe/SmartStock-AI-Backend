@@ -12,7 +12,12 @@ router.use(authMiddleware);
 
 // Gemini client: API key stays on the backend.
 const ai = process.env.GEMINI_API_KEY
-  ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+  ? new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+      httpOptions: {
+        timeout: 30000,
+      },
+    })
   : null;
 
 function getLocalDayRange() {
@@ -206,13 +211,32 @@ router.post("/chat", async (req, res) => {
     }
 
     return res.status(200).json({ answer });
+  
   } catch (error) {
     console.error("Mira chat error:", error);
+
+    const status = error?.status ?? error?.code;
+    const message = String(error?.message ?? "");
+
+    if (status === 503 || status === 429) {
+      return res.status(503).json({
+        message:
+          "Mira is busy right now. Please try again in a few seconds.",
+      });
+    }
+
+    if (/timeout|timed out|deadline exceeded/i.test(message)) {
+      return res.status(504).json({
+        message:
+          "Mira took too long to respond. Please try again.",
+      });
+    }
 
     return res.status(500).json({
       message: "Mira could not answer right now. Please try again.",
     });
   }
 });
+
 
 module.exports = router;
