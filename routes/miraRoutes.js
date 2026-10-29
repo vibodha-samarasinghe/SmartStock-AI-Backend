@@ -64,6 +64,7 @@ router.post("/chat", async (req, res) => {
     const ownerId = req.user.id;
 
     // Only fetch data belonging to the authenticated owner.
+    const dbStart = Date.now();
     const [products, sales] = await Promise.all([
       Product.find({ ownerId })
         .select("name sku category price stock minimumStock")
@@ -74,7 +75,11 @@ router.post("/chat", async (req, res) => {
         .limit(500)
         .lean(),
     ]);
-
+   console.log(
+  "Mira database query time:",
+  Date.now() - dbStart,
+  "ms"
+);
     const totalProducts = products.length;
 
     const totalStock = products.reduce(
@@ -157,7 +162,7 @@ router.post("/chat", async (req, res) => {
         })),
       },
     };
-
+    const aiStart = Date.now();
     const response = await ai.models.generateContent({
       model: "gemini-3.8-flash",
       contents: [
@@ -187,7 +192,11 @@ router.post("/chat", async (req, res) => {
         },
       ],
     });
-
+    console.log(
+      "Mira Gemini response time:",
+      Date.now() - aiStart,
+      "ms"
+    );
     const answer = response.text?.trim();
 
     if (!answer) {
@@ -198,7 +207,7 @@ router.post("/chat", async (req, res) => {
 
     return res.status(200).json({ answer });
   } catch (error) {
-    console.error("Mira chat error:", error.message);
+    console.error("Mira chat error:", error);
 
     return res.status(500).json({
       message: "Mira could not answer right now. Please try again.",
