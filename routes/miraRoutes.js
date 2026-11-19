@@ -169,7 +169,7 @@ router.post("/chat", async (req, res) => {
     };
     const aiStart = Date.now();
     const response = await ai.models.generateContent({
-      model:"gemini-3.7-flash",
+      model:"gemini-3.5 Flash-Lite",
       contents: [
         {
           role: "user",
